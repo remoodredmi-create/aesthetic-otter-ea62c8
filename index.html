@@ -62,6 +62,15 @@
         .miner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .miner-card { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; text-align: center; position: relative;}
         .miner-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+        .miner-card h4 { margin: 0 0 5px 0; font-size: 13px; color: #f8fafc; }
+        .miner-card p { margin: 0; font-size: 11px; color: var(--accent); }
+        
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(20px); }
         
         .animated-number { font-family: 'Courier New', monospace; font-weight: bold; font-size: 24px; color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); margin: 5px 0;}
         .coin-animation { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 35px; color: #fbbf24; font-weight: bold; z-index: 9999; animation: coinPop 1.5s ease-out forwards; pointer-events: none;}
@@ -71,7 +80,13 @@
         .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: bold; }
         .status-Pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
         .status-Paid { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .status-Rejected { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
         
+        .lb-rank { width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; background: #334155;}
+        .rank-1 { background: linear-gradient(45deg, #fbbf24, #f59e0b); color: #000; box-shadow: 0 0 10px #fbbf24;}
+        .rank-2 { background: linear-gradient(45deg, #94a3b8, #cbd5e1); color: #000;}
+        .rank-3 { background: linear-gradient(45deg, #b45309, #d97706); color: #fff;}
+
         .streak-dots { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
         .dot { width: 14px; height: 14px; border-radius: 50%; background: #334155; border: 2px solid rgba(255,255,255,0.1); transition: 0.3s; }
         .dot.active { background: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.8); border-color: #fff; }
@@ -79,38 +94,23 @@
         #spinWheel { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: #fbbf24; background: radial-gradient(circle, #1e293b, #0f172a); transition: transform 3.5s cubic-bezier(0.1, 0, 0.1, 1); box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);}
         .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #ef4444; z-index: 10;}
         
+        .booster-badge { position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; padding: 5px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.5); animation: pulse 1.5s infinite; display: none;}
+        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.1);} 100% {transform: scale(1);} }
+
         .pay-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
         .pay-method { background: rgba(0,0,0,0.3); border: 2px solid transparent; border-radius: 12px; padding: 10px 5px; text-align: center; cursor: pointer; transition: 0.3s; opacity: 0.5; filter: grayscale(100%);}
         .pay-method img { width: 40px; height: 40px; border-radius: 10px; margin-bottom: 5px; object-fit: cover;}
         .pay-method span { font-size: 11px; display: block; color: white; font-weight: 600;}
         .pay-method.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.15); opacity: 1; filter: grayscale(0%); transform: scale(1.05); box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);}
 
-        /* -------------------------------------------
-           NEW: ADVANCED TAP TO EARN STYLES (CIRCLE FIX)
-           ------------------------------------------- */
         .tap-zone { height: 280px; display: flex; align-items: center; justify-content: center; position: relative; margin-top: 10px;}
-        .tap-coin { 
-            width: 220px; 
-            height: 220px; 
-            border-radius: 50%; /* Makes image a perfect circle */
-            object-fit: cover; /* Crops the landscape image nicely */
-            border: 4px solid rgba(251, 191, 36, 0.8); /* Golden Border */
-            box-shadow: 0 0 40px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(0,0,0,0.8); /* Neon Glow */
-            cursor: pointer; 
-            user-select: none; 
-            transition: transform 0.08s ease-out; 
-            -webkit-tap-highlight-color: transparent;
-        }
-        .tap-coin:active { 
-            transform: scale(0.92); 
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); 
-        }
+        .tap-coin { width: 220px; height: 220px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(251, 191, 36, 0.8); box-shadow: 0 0 40px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(0,0,0,0.8); cursor: pointer; user-select: none; transition: transform 0.08s ease-out; -webkit-tap-highlight-color: transparent;}
+        .tap-coin:active { transform: scale(0.92); box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
         .floating-text { position: absolute; color: white; font-weight: bold; font-size: 24px; pointer-events: none; animation: floatUp 0.8s ease-out forwards; text-shadow: 0 3px 6px rgba(0,0,0,0.8); }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-60px) scale(1.3); } }
         .energy-bar-bg { background: rgba(255,255,255,0.1); height: 12px; border-radius: 10px; overflow: hidden; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05); }
         .energy-bar-fill { background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981); height: 100%; width: 100%; transition: 0.2s; }
 
-        /* OVERLAY MODAL FOR WITHDRAW CATCH */
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; }
         .modal-box { background: var(--panel); border: 1px solid #3b82f6; border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: fadeUp 0.3s ease; }
         
@@ -233,6 +233,14 @@
                     <button class="btn btn-danger" onclick="buyBooster()" style="width: auto; padding: 8px 15px; margin:0; font-size: 12px;">2,000 Coins</button>
                 </div>
             </div>
+
+            <div class="card" style="text-align: center;">
+                <h3 style="margin:0 0 5px 0; color: #10b981;"><i class="fas fa-dharmachakra"></i> Lucky Spin</h3>
+                <p style="font-size: 12px; color: var(--muted); margin: 0;">Ads ၃ ကြိမ်ကြည့်တိုင်း ၁ ကြိမ်လှည့်ခွင့်ရမည်</p>
+                <p style="font-size: 12px; color: #fbbf24; font-weight: bold; margin-top: 5px;">ကျန်ရှိသော အကြိမ်: <span id="spinCountText">0</span></p>
+                <div class="wheel-container"><div class="wheel-pointer"></div><div id="spinWheel">?</div></div>
+                <button class="btn btn-success" id="spinBtn" onclick="startSpin()" disabled>ကံစမ်းမည် (Spin)</button>
+            </div>
         </div>
 
         <div id="miner" class="tab-content">
@@ -308,7 +316,7 @@
                         <input type="number" id="mlbbId" placeholder="Game ID">
                         <input type="number" id="mlbbZone" placeholder="Zone ID">
                     </div>
-                    <button class="btn btn-warning" id="checkNameBtn" onclick="checkMLBBName()" style="margin-top: 0; padding: 10px; font-size: 13px;"><i class="fas fa-search"></i> ပြန်လည်စစ်ဆေးရန်</button>
+                    <button class="btn btn-warning" id="checkNameBtn" onclick="checkMLBBName()" style="margin-top: 0; padding: 10px; font-size: 13px;"><i class="fas fa-search"></i> နာမည် အလိုအလျောက် စစ်ရန်</button>
                 </div>
                 
                 <button class="btn btn-success" id="wdBtn" onclick="requestWithdraw()">ယခု ထုတ်မည်</button>
@@ -331,6 +339,7 @@
     </div>
 
     <script>
+        // --- FIREBASE CONFIG (ADD YOURS IF DIFFERENT) ---
         const firebaseConfig = {
             apiKey: "AIzaSyDUVFWArTj373R1AZLx5gj1uaRF2nokBf8",
             authDomain: "ads-eran-mm-fb1ce.firebaseapp.com",
@@ -359,6 +368,14 @@
         let selectedPaymentMethod = "Wave Pay"; 
         let currentEnergy = 500; let maxEnergy = 500;
 
+        // --- RATE LISTENER (ADMIN.HTML က လှမ်းပို့တာကို လက်ခံဖို့) ---
+        db.ref('settings/exchangeRate').on('value', (snapshot) => {
+            if(snapshot.exists()) {
+                document.querySelectorAll('.liveRateDisplay').forEach(el => el.innerText = snapshot.val());
+            }
+        });
+
+        // TICKER LOGIC
         function generateTicker() {
             let texts = [];
             let amounts = ["10,000 Ks", "150 Diamonds", "3,000 Bill", "20,000 Ks", "250 Diamonds", "15,000 Ks"];
@@ -434,6 +451,11 @@
             document.getElementById('boosterBadge').style.display = isBoosterActive ? "block" : "none";
             document.getElementById('adRewardText').innerText = isBoosterActive ? "200" : "100";
             
+            let spinsEarned = Math.floor((data.watched || 0) / 3);
+            let availableSpins = Math.max(0, spinsEarned - (data.spinsUsed || 0));
+            document.getElementById('spinCountText').innerText = availableSpins;
+            document.getElementById('spinBtn').disabled = availableSpins <= 0;
+
             let lvl = parseInt(data.minerLevel) || 0;
             if(lvl >= 1 && data.referredBy && !data.minerRewardedToReferrer) {
                 db.ref('users/' + data.referredBy + '/activeRefers').transaction(current => (current || 0) + 1);
@@ -521,7 +543,6 @@
             }
         }, 3000);
 
-        // MLBB Smart Mock Checker 
         function checkMLBBName() {
             const gameId = document.getElementById('mlbbId').value; 
             const zoneId = document.getElementById('mlbbZone').value; 
@@ -551,6 +572,10 @@
                 }, 4000);
             }, 1500);
         }
+
+        // --- FIX FOR MINER PURCHASE ---
+        // Changed start parameter from buy_miner to match standard bot link setup
+        function buyMiner(lvl) { tg.openTelegramLink(`https://t.me/ADSEranMoneyMm_Bot?start=buy_miner`); }
 
         function requestWithdraw() {
             let hasMiner = false;
@@ -607,12 +632,22 @@
         }
         function claimMission() { db.ref('users/' + userId).update({ coins: (userData.coins || 0) + 500, missionClaimed: true }); showCoinAnimation("+500"); showToast("🎯 Mission အောင်မြင်ပါသည်!"); }
         function buyBooster() { if(userData.coins < 2000) return showToast("⚠️ Coin မလုံလောက်ပါ"); db.ref('users/' + userId).update({ coins: userData.coins - 2000, boosterUntil: Date.now() + 3600000 }); showToast("⚡ 2x Booster ဝယ်ယူပြီးပါပြီ။"); }
+        function startSpin() {
+            const wheel = document.getElementById('spinWheel'); const btn = document.getElementById('spinBtn');
+            const rewards = [50, 100, 200, 500, 0, 1000]; const randDeg = 1800 + Math.floor(Math.random() * 360); const win = rewards[Math.floor(Math.random() * rewards.length)];
+            btn.disabled = true; wheel.style.transform = `rotate(${randDeg}deg)`;
+            db.ref('users/' + userId).update({ spinsUsed: (userData.spinsUsed || 0) + 1 });
+            setTimeout(() => {
+                wheel.innerText = win;
+                if(win > 0) { db.ref('users/' + userId + '/coins').transaction(c => (c || 0) + win); showCoinAnimation("+" + win); showToast(`🎁 ${win} Coins ပေါက်ပါသည်။`); } else showToast("😥 ကံမကောင်းပါ။");
+                setTimeout(() => { wheel.style.transition = 'none'; wheel.style.transform = `rotate(0deg)`; wheel.innerText = "?"; setTimeout(() => wheel.style.transition = 'transform 3.5s cubic-bezier(0.1, 0, 0.1, 1)', 50); }, 2000);
+            }, 3500);
+        }
         function collectMiner() { let mined = ((Date.now() - (userData.lastCollected || Date.now())) / 86400000) * totalDailyRate; if(mined < 1) return showToast("⚠️ အနည်းဆုံး 1 Coin လိုအပ်သည်"); db.ref('users/' + userId).update({ coins: (userData.coins || 0) + mined, lastCollected: Date.now() }); showCoinAnimation("+" + Math.floor(mined)); }
         function claimStreak() { let now = Date.now(); let s = userData.streak || 0; if((now - (userData.lastCheckIn || 0)) / 3600000 > 48) s = 0; s = (s % 5) + 1; let b = 50 + (s * 10); db.ref('users/' + userId).update({ coins: (userData.coins || 0) + b, lastCheckIn: now, streak: s }); showCoinAnimation("+" + b); }
         function showCoinAnimation(t) { const el = document.createElement('div'); el.className = 'coin-animation'; el.innerHTML = `<i class="fas fa-coins"></i> ${t}`; document.body.appendChild(el); setTimeout(() => el.remove(), 1500); }
         function showToast(m) { const t = document.getElementById('toastMsg'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
         function copyLink() { document.getElementById('inviteLink').select(); document.execCommand('copy'); showToast("✅ Copy ကူးပြီးပါပြီ"); }
-        function buyMiner(lvl) { tg.openTelegramLink(`https://t.me/ADSEranMoneyMm_Bot?start=buy_${lvl}`); }
     </script>
 </body>
 </html>
