@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ads Eran MM - Pro Max</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        :root { --bg: #0b1120; --panel: #1e293b; --primary: #3b82f6; --accent: #10b981; --text: #f8fafc; --muted: #94a3b8; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0 0 80px 0; -webkit-tap-highlight-color: transparent; overflow-x: hidden;}
+        
+        .ticker-wrap { background: rgba(16, 185, 129, 0.1); border-bottom: 1px solid rgba(16, 185, 129, 0.2); padding: 8px 0; overflow: hidden; font-size: 12px; color: #10b981; font-weight: 600; }
+        .ticker-move { display: inline-block; white-space: nowrap; animation: ticker 30s linear infinite; }
+        @keyframes ticker { 0% { transform: translate3d(100%, 0, 0); } 100% { transform: translate3d(-150%, 0, 0); } }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(11, 17, 32, 0.9); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .profile-sec { display: flex; align-items: center; gap: 12px; }
+        .profile-sec img { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--primary); }
+        .profile-sec h2 { margin: 0; font-size: 15px; font-weight: 600; }
+        
+        .container { padding: 15px; }
+        .tab-content { display: none; animation: fadeUp 0.3s ease forwards; opacity: 0; transform: translateY(10px); }
+        .tab-content.active { display: block; }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+        
+        .card { background: var(--panel); border-radius: 16px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;}
+        .card-title { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; }
+        .balance-display h1 { margin: 0; font-size: 40px; font-weight: 800; background: linear-gradient(to right, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; transition: 0.3s;}
+        
+        .progress-bg { background: rgba(255,255,255,0.1); height: 8px; border-radius: 10px; overflow: hidden; margin: 15px 0 10px 0; }
+        .progress-fill { background: linear-gradient(90deg, #3b82f6, #10b981); height: 100%; width: 0%; transition: 1s ease-out; }
+        
+        .input-group { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; padding: 5px 15px; margin-bottom: 12px; }
+        .input-group i { color: var(--primary); font-size: 16px; width: 25px; text-align: center; }
+        .input-group input, .input-group select { flex: 1; background: transparent; border: none; color: white; padding: 12px 10px; font-size: 14px; outline: none; width: 100%;}
+        .input-group select option { background: var(--panel); color: white; }
+        
+        .mlbb-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .mlbb-grid input { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; padding: 14px 15px; font-size: 14px; outline: none; width: 100%; box-sizing: border-box;}
+
+        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; color: white; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 15px; transition: 0.3s;}
+        .btn:active { transform: scale(0.95); }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+        .btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed;}
+        
+        .nav-bar { position: fixed; bottom: 10px; left: 5px; right: 5px; background: rgba(30, 41, 59, 0.95); border-radius: 16px; display: flex; justify-content: space-around; padding: 10px 2px; border: 1px solid rgba(255,255,255,0.05); z-index: 100;}
+        .nav-item { color: var(--muted); font-size: 10px; display: flex; flex-direction: column; align-items: center; flex: 1; gap: 4px; cursor: pointer;}
+        .nav-item i { font-size: 16px; }
+        .nav-item.active { color: #3b82f6; }
+        
+        .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-150px); background: rgba(30, 41, 59, 0.98); color: white; padding: 14px 20px; border-radius: 12px; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1000; font-size: 13px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: max-content; max-width: 85%; text-align: center; border: 1px solid rgba(59, 130, 246, 0.3); line-height: 1.5; word-wrap: break-word;}
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        
+        .miner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .miner-card { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; text-align: center; position: relative;}
+        .miner-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+        
+        .animated-number { font-family: 'Courier New', monospace; font-weight: bold; font-size: 24px; color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); margin: 5px 0;}
+        .coin-animation { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 35px; color: #fbbf24; font-weight: bold; z-index: 9999; animation: coinPop 1.5s ease-out forwards; pointer-events: none;}
+        @keyframes coinPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -100px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -200px) scale(0.8); } }
+        
+        .history-item, .lb-item { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: bold; }
+        .status-Pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .status-Paid { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        
+        .streak-dots { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
+        .dot { width: 14px; height: 14px; border-radius: 50%; background: #334155; border: 2px solid rgba(255,255,255,0.1); transition: 0.3s; }
+        .dot.active { background: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.8); border-color: #fff; }
+        .wheel-container { position: relative; width: 140px; height: 140px; margin: 20px auto; }
+        #spinWheel { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: #fbbf24; background: radial-gradient(circle, #1e293b, #0f172a); transition: transform 3.5s cubic-bezier(0.1, 0, 0.1, 1); box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);}
+        .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #ef4444; z-index: 10;}
+        
+        .pay-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
+        .pay-method { background: rgba(0,0,0,0.3); border: 2px solid transparent; border-radius: 12px; padding: 10px 5px; text-align: center; cursor: pointer; transition: 0.3s; opacity: 0.5; filter: grayscale(100%);}
+        .pay-method img { width: 40px; height: 40px; border-radius: 10px; margin-bottom: 5px; object-fit: cover;}
+        .pay-method span { font-size: 11px; display: block; color: white; font-weight: 600;}
+        .pay-method.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.15); opacity: 1; filter: grayscale(0%); transform: scale(1.05); box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);}
+
+        /* -------------------------------------------
+           NEW: ADVANCED TAP TO EARN STYLES (CIRCLE FIX)
+           ------------------------------------------- */
+        .tap-zone { height: 280px; display: flex; align-items: center; justify-content: center; position: relative; margin-top: 10px;}
+        .tap-coin { 
+            width: 220px; 
+            height: 220px; 
+            border-radius: 50%; /* Makes image a perfect circle */
+            object-fit: cover; /* Crops the landscape image nicely */
+            border: 4px solid rgba(251, 191, 36, 0.8); /* Golden Border */
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(0,0,0,0.8); /* Neon Glow */
+            cursor: pointer; 
+            user-select: none; 
+            transition: transform 0.08s ease-out; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tap-coin:active { 
+            transform: scale(0.92); 
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); 
+        }
+        .floating-text { position: absolute; color: white; font-weight: bold; font-size: 24px; pointer-events: none; animation: floatUp 0.8s ease-out forwards; text-shadow: 0 3px 6px rgba(0,0,0,0.8); }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-60px) scale(1.3); } }
+        .energy-bar-bg { background: rgba(255,255,255,0.1); height: 12px; border-radius: 10px; overflow: hidden; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .energy-bar-fill { background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981); height: 100%; width: 100%; transition: 0.2s; }
+
+        /* OVERLAY MODAL FOR WITHDRAW CATCH */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal-box { background: var(--panel); border: 1px solid #3b82f6; border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: fadeUp 0.3s ease; }
+        
+        .rules-box { background: transparent; border: 1px solid #3b82f6; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; text-align: left; }
+        .rules-box h4 { margin: 0 0 10px 0; color: #3b82f6; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        .rules-box p { font-size: 12px; color: var(--muted); margin: 0 0 12px 0; line-height: 1.5; }
+        .rules-box ul { margin: 0; padding-left: 20px; font-size: 13px; color: var(--text); line-height: 1.8;}
+        .rules-box li b { color: #fbbf24; }
+    </style>
+</head>
+<body>
+
+    <div class="toast" id="toastMsg"><span>Message</span></div>
+
+    <div class="modal-overlay" id="wdModal">
+        <div class="modal-box">
+            <i class="fas fa-crown" style="font-size: 50px; color: #fbbf24; margin-bottom: 15px;"></i>
+            <h2 style="margin: 0 0 10px 0; color: #10b981;">ဂုဏ်ယူပါတယ်!</h2>
+            <p style="font-size: 14px; color: var(--text); margin-bottom: 10px;">သင် ငွေထုတ် အဆင့် ၂ သို့ရောက်ရှိပါပြီ။</p>
+            <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 10px; border-radius: 8px; font-size: 12px; text-align: left; margin-bottom: 15px;">
+                <b style="color:#ef4444;">အဆင့် ၃ ပြီးမှသာ ငွေထုတ်ယူနိုင်ပါသည်။</b> အဆင့် ၃ ပြီးပါက ထပ်မံ အပိုထပ်ဆောင်း <b>Coin 15,000</b> ကို ရရှိပါမည်။
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; text-align: left; font-size: 12px; color: var(--muted); margin-bottom: 20px;">
+                <h4 style="margin: 0 0 5px 0; color: #3b82f6;"><i class="fas fa-info-circle"></i> အဆင့် ၃ လုပ်ဆောင်ရန်</h4>
+                သင့်မိတ်ဆွေ <b>၃ ဦး</b> အား Level 1 သို့မဟုတ် VIP တူးစက် ဝယ်ထားရန် တိုက်တွန်းပါ။ သင့်မိတ်ဆွေ တူးစက်ဝယ်ယူပါက သင့်အဆင့်အားလုံး အောင်မြင်ပါမည်။
+            </div>
+            <p style="font-size: 12px; color: #fbbf24; font-weight: bold;">တူးစက်ဝယ်ယူသော မိတ်ဆွေ: <span id="activeReferCount">0</span> / 3</p>
+            <div class="progress-bg" style="margin-bottom: 20px;"><div class="progress-fill" id="phase3Progress" style="width: 0%;"></div></div>
+            
+            <button class="btn btn-primary" onclick="document.getElementById('wdModal').style.display='none'">နားလည်ပါပြီ</button>
+        </div>
+    </div>
+
+    <div class="ticker-wrap">
+        <div class="ticker-move" id="liveTicker">Loading recent payouts...</div>
+    </div>
+
+    <div class="header">
+        <div class="profile-sec">
+            <img src="https://ui-avatars.com/api/?name=U&background=3b82f6&color=fff" id="userAvatar">
+            <div>
+                <h2 id="userName">Loading...</h2>
+                <p style="margin:0; font-size:11px; color:var(--accent)"><i class="fas fa-bolt"></i> Speed: <span id="totalHash">0</span>/D</p>
+            </div>
+        </div>
+        <div style="background: rgba(251,191,36,0.1); padding: 6px 12px; border-radius: 12px; border: 1px solid #fbbf24; color: #fbbf24; font-weight: bold; font-size: 13px;">
+            <i class="fas fa-coins"></i> <span id="headerCoins">0</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="main" class="tab-content active">
+            <div class="card" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-color: #3b82f6;">
+                <p style="margin: 0; font-size: 12px; color: var(--muted); text-align: center;">ယနေ့ Coins ပေါက်ဈေး</p>
+                <h2 style="margin: 5px 0 0 0; color: #10b981; text-align: center; font-size: 18px;">
+                    <i class="fas fa-chart-line"></i> 10,000 Coins = <span class="liveRateDisplay">5000</span> Ks
+                </h2>
+            </div>
+            <div class="card">
+                <p class="card-title"><i class="fas fa-wallet"></i> လက်ရှိ ပိုင်ဆိုင်မှု</p>
+                <div class="balance-display"><h1 id="mainCoins">0</h1></div>
+                <div class="progress-bg"><div class="progress-fill" id="wdProgress"></div></div>
+                <div style="display:flex; justify-content: space-between; font-size:11px; color:var(--muted)"><span>0</span><span>10,000 (Min)</span></div>
+            </div>
+            <div class="card" style="text-align: center; background: linear-gradient(45deg, #1e293b, #334155);">
+                <i class="fas fa-fire" style="font-size: 30px; color: #f59e0b; margin-bottom: 5px;"></i>
+                <h3 style="margin:0 0 5px 0; font-size: 16px;">Daily Streak Bonus</h3>
+                <p style="color:var(--muted); font-size:12px; margin:0;">နေ့တိုင်းဝင်ရောက်ပြီး Bonus အများကြီးရယူပါ</p>
+                <div class="streak-dots" id="streakDots"></div>
+                <button class="btn btn-warning" id="streakBtn" onclick="claimStreak()" style="margin-top:0; padding: 10px;">ယနေ့အတွက် ယူမည်</button>
+            </div>
+        </div>
+
+        <div id="tap" class="tab-content">
+            <div class="card" style="text-align: center; border-color: #f59e0b;">
+                <h3 style="margin: 0 0 5px 0; color: #fbbf24;"><i class="fas fa-hand-pointer"></i> Tap to Earn</h3>
+                <p style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Coin ကိုနှိပ်၍ အမှတ်စုဆောင်းပါ</p>
+                
+                <div class="tap-zone" id="tapZone">
+                    <img src="https://i.ibb.co/yB5hFYnc/1774496466943.png" class="tap-coin" id="tapCoin" alt="Tap Coin" draggable="false">
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; margin-top: 25px;">
+                    <span style="color: #ef4444;"><i class="fas fa-bolt"></i> Energy</span>
+                    <span><span id="energyText">500</span> / 500</span>
+                </div>
+                <div class="energy-bar-bg"><div class="energy-bar-fill" id="energyBar"></div></div>
+            </div>
+        </div>
+
+        <div id="tasks" class="tab-content">
+            <div class="card" style="border-color: #10b981;">
+                <p class="card-title" style="color:#10b981;"><i class="fas fa-bullseye"></i> Daily Mission</p>
+                <div style="display:flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="margin:0 0 5px 0;">ကြော်ငြာ ၁၀ ကြိမ် ကြည့်ပါ</h4>
+                        <p style="margin:0; font-size: 11px; color: var(--muted);">ဆုကြေး: <b style="color:#fbbf24;">+500 Coins</b></p>
+                    </div>
+                    <div style="font-weight: bold; color: #3b82f6;"><span id="missionProgress">0</span> / 10</div>
+                </div>
+                <div class="progress-bg" style="height: 6px;"><div class="progress-fill" id="missionBar" style="background: #10b981;"></div></div>
+                <button class="btn btn-success" id="claimMissionBtn" onclick="claimMission()" style="padding: 10px; display: none;">Mission ဆုယူမည်</button>
+            </div>
+
+            <div class="card" style="text-align: center;">
+                <div class="booster-badge" id="boosterBadge"><i class="fas fa-bolt"></i> 2x Active!</div>
+                <i class="fas fa-play-circle" style="font-size: 40px; color: var(--primary); margin-bottom: 10px;"></i>
+                <h3 style="margin:0 0 5px 0;">ကြော်ငြာကြည့်ရန်</h3>
+                <p style="color:var(--muted); font-size: 13px; margin:0;">၁ ကြိမ်ကြည့်လျှင် <span id="adRewardText">100</span> Coins ရပါမည်။</p>
+                <button class="btn btn-primary" id="adBtn" onclick="watchAd()">ယခုကြည့်မည်</button>
+            </div>
+            
+            <div class="card" style="background: rgba(239, 68, 68, 0.05); border-color: #ef4444;">
+                <p class="card-title" style="color:#ef4444;"><i class="fas fa-store"></i> Booster Shop</p>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h4 style="margin: 0 0 5px 0;"><i class="fas fa-flask" style="color:#ef4444;"></i> 2x Potion (၁ နာရီ)</h4>
+                        <p style="margin: 0; font-size: 11px; color: var(--muted);">Ads ကြည့်သမျှ Coin ၂ ဆ ရမည်</p>
+                    </div>
+                    <button class="btn btn-danger" onclick="buyBooster()" style="width: auto; padding: 8px 15px; margin:0; font-size: 12px;">2,000 Coins</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="miner" class="tab-content">
+            <div class="card" id="activeMinerCard" style="display:none; background: linear-gradient(135deg, #1e293b, #0f172a); border-color: #f59e0b;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <p class="card-title" style="color: #fbbf24; margin:0;"><i class="fas fa-hammer"></i> Active Miners</p>
+                </div>
+                <div style="text-align: center; margin: 15px 0;">
+                    <div class="animated-number" id="minedCoinsDisplay">0.000000</div>
+                    <p style="margin: 5px 0 0 0; font-size: 11px; color: #10b981;"><i class="fas fa-bolt"></i> Speed: <span id="speedDisplay">0</span> / Day</p>
+                </div>
+                <button class="btn btn-warning" style="padding: 10px;" onclick="collectMiner()">သိမ်းဆည်းမည်</button>
+            </div>
+
+            <div class="card" style="margin-bottom: 10px;">
+                <p class="card-title"><i class="fas fa-server"></i> Cloud Mining Store</p>
+                <div class="miner-grid">
+                    <div class="miner-card"><img src="https://i.ibb.co/357HMDTG/1774416741076.png"><h4>Level 1</h4><button class="btn btn-primary" id="btn_Level_1" style="padding:6px; font-size:12px;" onclick="buyMiner('Level_1')">7,500 Ks</button></div>
+                    <div class="miner-card"><img src="https://i.ibb.co/GNwX8NC/1774416890222.png"><h4>Level 2</h4><button class="btn btn-primary" id="btn_Level_2" style="padding:6px; font-size:12px;" onclick="buyMiner('Level_2')">15,000 Ks</button></div>
+                    <div class="miner-card"><img src="https://i.ibb.co/vvXkqnH2/1774417014017.png"><h4>Level 3</h4><button class="btn btn-primary" id="btn_Level_3" style="padding:6px; font-size:12px;" onclick="buyMiner('Level_3')">17,500 Ks</button></div>
+                    <div class="miner-card"><img src="https://i.ibb.co/zDCk0f6/1774417166921.png"><h4 style="color:#fbbf24;">VIP</h4><button class="btn btn-warning" id="btn_VIP" style="padding:6px; font-size:12px;" onclick="buyMiner('VIP')">12,500 Ks</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="refer" class="tab-content">
+            <div class="card" style="text-align: center;">
+                <i class="fas fa-users" style="font-size: 40px; color: #fbbf24; margin-bottom: 10px;"></i>
+                <h3 style="margin:0 0 5px 0;">မိတ်ဆွေဖိတ်ခေါ်ပါ</h3>
+                <p style="color:var(--muted); font-size:12px;">မိတ်ဆွေမှ ကြော်ငြာ ၁ ကြိမ်ကြည့်သည်နှင့် ချက်ချင်း 500 Coins ရမည်။</p>
+                <div class="input-group" style="margin-top: 15px;"><input type="text" id="inviteLink" readonly></div>
+                <button class="btn btn-primary" onclick="copyLink()">လင့်ခ်ကို Copy ကူးမည်</button>
+            </div>
+            
+            <div class="card">
+                <p class="card-title" style="color: #fbbf24;"><i class="fas fa-trophy"></i> Top Leaders (Live)</p>
+                <div id="leaderboardList">
+                    <div style="text-align:center; font-size:12px; color:var(--muted);">Loading Leaderboard...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="wallet" class="tab-content">
+            <div class="card">
+                <p class="card-title">ငွေထုတ်ယူရန်</p>
+                
+                <div class="rules-box">
+                    <h4><i class="fas fa-shield-alt"></i> ငွေထုတ်ရန် လိုအပ်ချက် (၃) ရပ်</h4>
+                    <p>လိမ်လည်မှု ကင်းရှင်းစေရန်နှင့် စနစ်တကျရှိစေရန် အောက်ပါအချက်များ ပြည့်စုံရပါမည် -</p>
+                    <ul>
+                        <li><b>အဆင့် ၁:</b> အနည်းဆုံး <b>10,000 Coins</b> ရှိရမည်။</li>
+                        <li><b>အဆင့် ၂:</b> <b>Level 1 (သို့) VIP</b> တူးစက် ဝယ်ယူထားရမည်။</li>
+                        <li><b>အဆင့် ၃:</b> မိမိဖိတ်ခေါ်ထားသူများထဲမှ အနည်းဆုံး <b>၃ ဦး</b> တူးစက်ဝယ်ယူထားရမည်။</li>
+                    </ul>
+                </div>
+
+                <div class="pay-grid">
+                    <div class="pay-method active" id="pm_Wave" onclick="selectPayment('Wave')"><img src="https://i.ibb.co/G38xtzKQ/ab76bb0483ac7c445251c650cc7c1227-1.jpg"><span>Wave</span></div>
+                    <div class="pay-method" id="pm_KPay" onclick="selectPayment('KPay')"><img src="https://i.ibb.co/BVYsT5HY/bb9e442d583a959c107648de8c8a95d0.jpg"><span>KPay</span></div>
+                    <div class="pay-method" id="pm_Bill" onclick="selectPayment('Bill')"><img src="https://i.ibb.co/VcpJ0FvD/400555ed128475bf928a4bc3177af12a.jpg"><span>Bill</span></div>
+                    <div class="pay-method" id="pm_MLBB" onclick="selectPayment('MLBB')"><img src="https://i.ibb.co/hJffsVs6/ec9dd32c001ab51f4637a6d56b0e22e1.jpg"><span>MLBB</span></div>
+                </div>
+                
+                <div class="input-group"><i class="fas fa-coins"></i><input type="number" id="wdAmount" placeholder="ထုတ်ယူမည့် Coin ပမာဏ"></div>
+                
+                <div id="dynamicInputs">
+                    <div class="input-group"><input type="number" id="inp_Phone" placeholder="ဖုန်းနံပါတ် (09...)"></div>
+                    <div class="input-group"><input type="text" id="inp_Name" placeholder="အကောင့်အမည်"></div>
+                </div>
+
+                <div id="mlbbCheckSection" style="display: none; background: rgba(16, 185, 129, 0.05); padding: 10px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); margin-bottom: 12px;">
+                    <div class="mlbb-grid">
+                        <input type="number" id="mlbbId" placeholder="Game ID">
+                        <input type="number" id="mlbbZone" placeholder="Zone ID">
+                    </div>
+                    <button class="btn btn-warning" id="checkNameBtn" onclick="checkMLBBName()" style="margin-top: 0; padding: 10px; font-size: 13px;"><i class="fas fa-search"></i> ပြန်လည်စစ်ဆေးရန်</button>
+                </div>
+                
+                <button class="btn btn-success" id="wdBtn" onclick="requestWithdraw()">ယခု ထုတ်မည်</button>
+            </div>
+            
+            <div class="card">
+                <p class="card-title"><i class="fas fa-history"></i> ငွေထုတ်မှတ်တမ်း</p>
+                <div id="wdHistoryList" style="font-size: 12px; color: var(--muted); text-align: center; padding: 10px 0;">မှတ်တမ်း မရှိသေးပါ။</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="switchTab('main', this)"><i class="fas fa-home"></i><span>ပင်မ</span></div>
+        <div class="nav-item" onclick="switchTab('tap', this)"><i class="fas fa-hand-pointer"></i><span>Tap</span></div>
+        <div class="nav-item" onclick="switchTab('tasks', this)"><i class="fas fa-play-circle"></i><span>အလုပ်</span></div>
+        <div class="nav-item" onclick="switchTab('miner', this)"><i class="fas fa-server"></i><span>တူးစက်</span></div>
+        <div class="nav-item" onclick="switchTab('refer', this)"><i class="fas fa-users"></i><span>ကွန်မြူနတီ</span></div>
+        <div class="nav-item" onclick="switchTab('wallet', this)"><i class="fas fa-wallet"></i><span>ငွေထုတ်</span></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDUVFWArTj373R1AZLx5gj1uaRF2nokBf8",
+            authDomain: "ads-eran-mm-fb1ce.firebaseapp.com",
+            databaseURL: "https://ads-eran-mm-fb1ce-default-rtdb.firebaseio.com",
+            projectId: "ads-eran-mm-fb1ce",
+            storageBucket: "ads-eran-mm-fb1ce.firebasestorage.app",
+            messagingSenderId: "297690230974",
+            appId: "1:297690230974:web:affc82ace1a52fa86b2eef"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const BOT_TOKEN = "8607411314:AAFcHrlEn7Y9KJVY3UkfAiOhpg4Nz6mwg0E";
+        const ADMIN_ID = "7383470904"; 
+        
+        const tg = window.Telegram.WebApp;
+        tg.expand(); tg.setHeaderColor('#0b1120');
+        const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "guest123";
+        const userName = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : "User";
+        
+        const AdController = window.Adsgram.init({ blockId: "25807" });
+
+        document.getElementById('userName').innerText = userName;
+        document.getElementById('inviteLink').value = `https://t.me/ADSEranMoneyMm_Bot?start=${userId}`;
+
+        let userData = {}; let totalDailyRate = 0; let isBoosterActive = false;
+        let selectedPaymentMethod = "Wave Pay"; 
+        let currentEnergy = 500; let maxEnergy = 500;
+
+        function generateTicker() {
+            let texts = [];
+            let amounts = ["10,000 Ks", "150 Diamonds", "3,000 Bill", "20,000 Ks", "250 Diamonds", "15,000 Ks"];
+            for(let i=0; i<8; i++){
+                let fakeId = Math.floor(1000 + Math.random() * 9000);
+                let randAmt = amounts[Math.floor(Math.random() * amounts.length)];
+                texts.push(`🎉 ID: ${fakeId}*** မှ ${randAmt} ထုတ်ယူသွားပါသည်!`);
+            }
+            document.getElementById('liveTicker').innerText = texts.join("   •   ");
+        }
+        generateTicker(); setInterval(generateTicker, 30000);
+
+        db.ref('users').orderByChild('coins').limitToLast(10).on('value', (snapshot) => {
+            if(snapshot.exists()) {
+                let usersArr = [];
+                snapshot.forEach(child => { usersArr.push(child.val()); });
+                usersArr.reverse(); 
+                let html = "";
+                usersArr.forEach((u, index) => {
+                    let rankClass = index < 3 ? `rank-${index+1}` : '';
+                    let name = u.name ? u.name.substring(0,12) : "User";
+                    html += `<div class="lb-item">
+                                <div style="display:flex; align-items:center; gap:10px;"><div class="lb-rank ${rankClass}">${index + 1}</div><span style="font-weight:600; font-size:13px;">${name}</span></div>
+                                <div style="color:#10b981; font-weight:bold; font-size:12px;">${Math.floor(u.coins || 0)}</div>
+                             </div>`;
+                });
+                document.getElementById('leaderboardList').innerHTML = html;
+            }
+        });
+
+        db.ref('withdrawals').orderByChild('userId').equalTo(userId).on('value', (snapshot) => {
+            const list = document.getElementById('wdHistoryList');
+            if(!snapshot.exists()){ list.innerHTML = "မှတ်တမ်း မရှိသေးပါ။"; return; }
+            let html = "";
+            snapshot.forEach(child => {
+                let w = child.val();
+                let colorClass = `status-${w.status}`; 
+                html = `<div class="history-item">
+                            <div><b>${w.bank}</b><br><span>${new Date(w.time).toLocaleDateString()}</span></div>
+                            <div style="text-align:right;"><span class="status-badge ${colorClass}">${w.status}</span><br><b>${w.amount} Coins</b></div>
+                        </div>` + html; 
+            });
+            list.innerHTML = html;
+        });
+
+        function sendTgMsg(chatId, text) { fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({chat_id: chatId, text: text}) }); }
+
+        db.ref('users/' + userId).on('value', (snapshot) => {
+            userData = snapshot.val();
+            let todayStr = new Date().toDateString();
+            if(!userData) {
+                const refBy = tg.initDataUnsafe.start_param || "";
+                userData = { coins: 0, watched: 0, invites: 0, activeRefers: 0, name: userName, referredBy: refBy, refRewarded: false, lastCheckIn: 0, streak: 0, spinsUsed: 0, lastCollected: Date.now(), phase3Passed: false, minerRewardedToReferrer: false };
+                db.ref('users/' + userId).set(userData);
+            } else {
+                updateUI(userData);
+            }
+        });
+
+        function updateUI(data) {
+            const currentCoins = parseFloat(data.coins) || 0;
+            document.getElementById('mainCoins').innerText = Math.floor(currentCoins);
+            document.getElementById('headerCoins').innerText = Math.floor(currentCoins);
+            
+            const today = new Date().toDateString();
+            const lastCheck = new Date(data.lastCheckIn || 0).toDateString();
+            let streakHtml = "";
+            for(let i=1; i<=5; i++) streakHtml += `<div class="dot ${i <= (data.streak || 0) ? 'active' : ''}"></div>`;
+            document.getElementById('streakDots').innerHTML = streakHtml;
+            document.getElementById('streakBtn').disabled = (lastCheck === today);
+
+            isBoosterActive = data.boosterUntil && Date.now() < data.boosterUntil;
+            document.getElementById('boosterBadge').style.display = isBoosterActive ? "block" : "none";
+            document.getElementById('adRewardText').innerText = isBoosterActive ? "200" : "100";
+            
+            let lvl = parseInt(data.minerLevel) || 0;
+            if(lvl >= 1 && data.referredBy && !data.minerRewardedToReferrer) {
+                db.ref('users/' + data.referredBy + '/activeRefers').transaction(current => (current || 0) + 1);
+                db.ref('users/' + userId).update({ minerRewardedToReferrer: true });
+                sendTgMsg(data.referredBy, `🎉 သတင်းကောင်း! သင်ဖိတ်ခေါ်ထားသော ${userName} သည် တူးစက်ဝယ်ယူလိုက်သဖြင့် သင့်အတွက် Active Refer (၁) ဦး တိုးသွားပါပြီ။`);
+            }
+
+            totalDailyRate = 0;
+            if(lvl == 1 || data.miners?.Level_1) { totalDailyRate = 5000; document.getElementById('btn_Level_1').innerText = "Owned"; document.getElementById('btn_Level_1').disabled = true;}
+            if(lvl == 2 || data.miners?.Level_2) { totalDailyRate = 10000; document.getElementById('btn_Level_2').innerText = "Owned"; document.getElementById('btn_Level_2').disabled = true;}
+            if(lvl == 3 || data.miners?.Level_3) { totalDailyRate = 15000; document.getElementById('btn_Level_3').innerText = "Owned"; document.getElementById('btn_Level_3').disabled = true;}
+            if(lvl == 4 || data.miners?.VIP) { totalDailyRate = 17500; document.getElementById('btn_VIP').innerText = "Owned"; document.getElementById('btn_VIP').disabled = true;}
+            
+            document.getElementById('totalHash').innerText = totalDailyRate;
+            if(totalDailyRate > 0) {
+                document.getElementById('activeMinerCard').style.display = 'block';
+                document.getElementById('speedDisplay').innerText = totalDailyRate;
+                if(!window.miningInterval) window.miningInterval = setInterval(() => {
+                    let mined = ((Date.now() - (userData.lastCollected || Date.now())) / 86400000) * totalDailyRate;
+                    document.getElementById('minedCoinsDisplay').innerText = mined.toFixed(6);
+                }, 100); 
+            }
+            document.getElementById('wdProgress').style.width = Math.min((currentCoins / 10000) * 100, 100) + '%';
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            el.classList.add('active');
+        }
+
+        function selectPayment(method) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('.pay-method').forEach(el => el.classList.remove('active'));
+            document.getElementById('pm_' + method).classList.add('active');
+
+            const dynInputs = document.getElementById('dynamicInputs');
+            const mlbbCheck = document.getElementById('mlbbCheckSection');
+
+            if(method === "MLBB") {
+                mlbbCheck.style.display = "block";
+                dynInputs.innerHTML = `<div class="input-group"><input type="text" id="inp_Name" placeholder="ဂိမ်းအမည် (အပေါ်က ခလုတ်ကိုနှိပ်၍ စစ်ဆေးပါ)" readonly></div>`;
+            } else if(method === "Bill") {
+                mlbbCheck.style.display = "none";
+                dynInputs.innerHTML = `<div class="input-group"><select id="inp_Operator"><option>Atom</option><option>MPT</option><option>Ooredoo</option><option>Mytel</option></select></div><div class="input-group"><input type="number" id="inp_Phone" placeholder="ဖုန်းနံပါတ် (09...)"></div><div class="input-group"><input type="text" id="inp_Name" placeholder="မှတ်ချက် (Optional)"></div>`;
+            } else { 
+                mlbbCheck.style.display = "none";
+                dynInputs.innerHTML = `<div class="input-group"><input type="number" id="inp_Phone" placeholder="ဖုန်းနံပါတ် (09...)"></div><div class="input-group"><input type="text" id="inp_Name" placeholder="အကောင့်အမည်"></div>`;
+            }
+        }
+
+        const coinImg = document.getElementById('tapCoin');
+        coinImg.addEventListener('pointerdown', (e) => {
+            if(currentEnergy <= 0) return showToast("⚠️ Energy ကုန်နေပါသည်");
+            currentEnergy -= 1;
+            document.getElementById('energyText').innerText = currentEnergy;
+            document.getElementById('energyBar').style.width = (currentEnergy/maxEnergy)*100 + '%';
+            
+            if(!window.tapCoinsBatch) window.tapCoinsBatch = 0;
+            window.tapCoinsBatch += 1;
+            
+            const rect = coinImg.getBoundingClientRect();
+            const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+            const floatText = document.createElement('div');
+            floatText.className = 'floating-text'; floatText.innerText = '+1';
+            floatText.style.left = x + 'px'; floatText.style.top = y + 'px';
+            document.getElementById('tapZone').appendChild(floatText);
+            
+            tg.HapticFeedback.impactOccurred('light');
+            setTimeout(() => floatText.remove(), 1000);
+            
+            clearTimeout(window.tapSaveTimer);
+            window.tapSaveTimer = setTimeout(() => {
+                db.ref('users/' + userId).update({ coins: (parseFloat(userData.coins)||0) + window.tapCoinsBatch });
+                window.tapCoinsBatch = 0;
+            }, 2000);
+        });
+
+        setInterval(() => {
+            if(currentEnergy < maxEnergy) {
+                currentEnergy += 1;
+                document.getElementById('energyText').innerText = currentEnergy;
+                document.getElementById('energyBar').style.width = (currentEnergy/maxEnergy)*100 + '%';
+            }
+        }, 3000);
+
+        // MLBB Smart Mock Checker 
+        function checkMLBBName() {
+            const gameId = document.getElementById('mlbbId').value; 
+            const zoneId = document.getElementById('mlbbZone').value; 
+            const btn = document.getElementById('checkNameBtn');
+            
+            if(!gameId || !zoneId) return showToast("⚠️ Game ID နှင့် Zone ID ထည့်ပါ။");
+            if(gameId.length < 5 || zoneId.length < 3) return showToast("⚠️ ID အချက်အလက် မှားယွင်းနေပါသည်။");
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> စစ်ဆေးနေသည်...'; 
+            btn.disabled = true;
+
+            setTimeout(() => {
+                let maskedId = gameId.substring(0, 3) + "***";
+                let fetchedName = "Player_" + maskedId; 
+                
+                document.getElementById('inp_Name').value = fetchedName;
+                showToast("✅ ဂိမ်းအမည် မှန်ကန်ပါသည်။");
+                
+                btn.innerHTML = '<i class="fas fa-check"></i> အမည်မှန်ကန်ပါသည်'; 
+                btn.style.background = "#10b981";
+                btn.style.color = "white";
+
+                setTimeout(() => { 
+                    btn.innerHTML = '<i class="fas fa-search"></i> ပြန်လည်စစ်ဆေးရန်'; 
+                    btn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)"; 
+                    btn.disabled = false; 
+                }, 4000);
+            }, 1500);
+        }
+
+        function requestWithdraw() {
+            let hasMiner = false;
+            let lvl = parseInt(userData.minerLevel) || 0;
+            if(lvl >= 1 || (userData.miners && (userData.miners.Level_1 || userData.miners.Level_2 || userData.miners.Level_3 || userData.miners.VIP))) {
+                hasMiner = true;
+            }
+            if(!hasMiner) return showToast("⚠️ ငွေထုတ်ရန် အနည်းဆုံး Level 1 တူးစက် ဝယ်ယူထားရန် လိုအပ်ပါသည်။");
+
+            const wdAmount = parseInt(document.getElementById('wdAmount').value);
+            if(!wdAmount || wdAmount < 10000) return showToast("⚠️ အနည်းဆုံး 10,000 Coins လိုအပ်ပါသည်။");
+            if((userData.coins || 0) < wdAmount) return showToast("⚠️ Coin မလုံလောက်ပါ။");
+
+            let activeRefers = parseInt(userData.activeRefers) || 0;
+            if(activeRefers < 3 && !userData.phase3Passed) {
+                document.getElementById('activeReferCount').innerText = activeRefers;
+                document.getElementById('phase3Progress').style.width = (activeRefers/3)*100 + '%';
+                document.getElementById('wdModal').style.display = 'flex';
+                return; 
+            } else if (!userData.phase3Passed) {
+                db.ref('users/' + userId).update({ phase3Passed: true, coins: (userData.coins || 0) + 15000 });
+                showToast("🎉 အဆင့် ၃ အောင်မြင်ပါသည်။ Bonus 15,000 Coins ရရှိပါသည်!");
+            }
+
+            let accNum = ""; let accName = ""; let finalBank = selectedPaymentMethod;
+            if(selectedPaymentMethod === "MLBB") {
+                const gId = document.getElementById('mlbbId').value; const zId = document.getElementById('mlbbZone').value;
+                accName = document.getElementById('inp_Name').value;
+                if(!gId || !zId || !accName) return showToast("⚠️ နာမည်စစ်ဆေးခြင်း ပြုလုပ်ပါ။");
+                accNum = `${gId} (${zId})`; finalBank = "MLBB Diamonds";
+            } else if(selectedPaymentMethod === "Bill") {
+                finalBank = document.getElementById('inp_Operator').value + " Bill";
+                accNum = document.getElementById('inp_Phone').value; accName = document.getElementById('inp_Name').value || "-";
+                if(!accNum) return showToast("⚠️ ဖုန်းနံပါတ် ထည့်ပါ။");
+            } else {
+                accNum = document.getElementById('inp_Phone').value; accName = document.getElementById('inp_Name').value;
+                if(!accNum || !accName) return showToast("⚠️ အချက်အလက်များ ထည့်ပါ။");
+            }
+
+            db.ref('withdrawals').push({ userId: userId, name: userName, accName: accName, accNumber: accNum, bank: finalBank, amount: wdAmount, status: "Pending", time: Date.now() });
+            db.ref('users/' + userId).update({ coins: (userData.coins || 0) - wdAmount });
+            
+            sendTgMsg(ADMIN_ID, `🚨 ငွေထုတ်တောင်းဆိုမှု\n\n👤 User: ${userName}\n🏦 အမျိုးအစား: ${finalBank}\n💰 ပမာဏ: ${wdAmount} Coins\n📞 ID/Phone: ${accNum}\n📝 Name: ${accName}`);
+            showToast("🎉 ငွေထုတ်တောင်းဆိုမှု အောင်မြင်ပါသည်။");
+            document.getElementById('wdAmount').value = "";
+        }
+
+        function watchAd() {
+            const btn = document.getElementById('adBtn'); btn.disabled = true; btn.innerHTML = 'Loading...';
+            AdController.show().then(() => {
+                let r = isBoosterActive ? 200 : 100;
+                db.ref('users/' + userId).update({ coins: (userData.coins||0) + r, watched: (userData.watched||0)+1 }).then(() => { showCoinAnimation("+"+r); });
+            }).finally(() => { btn.disabled = false; btn.innerHTML = 'ယခုကြည့်မည်'; });
+        }
+        function claimMission() { db.ref('users/' + userId).update({ coins: (userData.coins || 0) + 500, missionClaimed: true }); showCoinAnimation("+500"); showToast("🎯 Mission အောင်မြင်ပါသည်!"); }
+        function buyBooster() { if(userData.coins < 2000) return showToast("⚠️ Coin မလုံလောက်ပါ"); db.ref('users/' + userId).update({ coins: userData.coins - 2000, boosterUntil: Date.now() + 3600000 }); showToast("⚡ 2x Booster ဝယ်ယူပြီးပါပြီ။"); }
+        function collectMiner() { let mined = ((Date.now() - (userData.lastCollected || Date.now())) / 86400000) * totalDailyRate; if(mined < 1) return showToast("⚠️ အနည်းဆုံး 1 Coin လိုအပ်သည်"); db.ref('users/' + userId).update({ coins: (userData.coins || 0) + mined, lastCollected: Date.now() }); showCoinAnimation("+" + Math.floor(mined)); }
+        function claimStreak() { let now = Date.now(); let s = userData.streak || 0; if((now - (userData.lastCheckIn || 0)) / 3600000 > 48) s = 0; s = (s % 5) + 1; let b = 50 + (s * 10); db.ref('users/' + userId).update({ coins: (userData.coins || 0) + b, lastCheckIn: now, streak: s }); showCoinAnimation("+" + b); }
+        function showCoinAnimation(t) { const el = document.createElement('div'); el.className = 'coin-animation'; el.innerHTML = `<i class="fas fa-coins"></i> ${t}`; document.body.appendChild(el); setTimeout(() => el.remove(), 1500); }
+        function showToast(m) { const t = document.getElementById('toastMsg'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+        function copyLink() { document.getElementById('inviteLink').select(); document.execCommand('copy'); showToast("✅ Copy ကူးပြီးပါပြီ"); }
+        function buyMiner(lvl) { tg.openTelegramLink(`https://t.me/ADSEranMoneyMm_Bot?start=buy_${lvl}`); }
+    </script>
+</body>
+</html>
